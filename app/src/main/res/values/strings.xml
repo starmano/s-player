@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">S Player</string>
+
+    <!-- Player -->
+    <string name="back">Back</string>
+    <string name="enter_pip">Picture-in-picture</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="rewind">Back 10 seconds</string>
+    <string name="fast_forward">Forward 10 seconds</string>
+    <string name="error_no_stream">Nothing to play: no stream URL was provided.</string>
+    <string name="error_playback">Playback failed (%1$s)</string>
+    <string name="error_pip_unavailable">Picture-in-picture is turned off for S Player in system settings.</string>
+
+    <!-- Launcher screen -->
+    <string name="main_tagline">A video player for Stremio that keeps playing in a floating picture-in-picture window, like Netflix and YouTube.</string>
+    <string name="main_setup_title">Use it with Stremio</string>
+    <string name="main_setup_steps">1. In Stremio, open Settings → Player and choose S Player as the external player. If Stremio asks which app to open a stream with, pick S Player.\n2. Start any movie or episode. It opens full screen in S Player.\n3. Swipe or press Home (or tap the picture-in-picture button) and the video keeps playing in a floating window. Drag it anywhere, tap it for controls, or drag it to the bottom of the screen to close it.</string>
+    <string name="main_try_title">Play a stream URL</string>
+    <string name="url_hint">https://example.com/video.mp4</string>
+    <string name="invalid_url">Enter a full URL, such as https://example.com/video.mp4</string>
+</resources>
