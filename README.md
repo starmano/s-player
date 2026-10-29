@@ -34,27 +34,50 @@ You can also open the S Player app and paste any direct stream URL to try it out
 ## Getting the APK
 
 Every push runs the **Android** GitHub Actions workflow, which builds, unit-tests and lints the
-app and uploads a debug APK as the `s-player-debug` artifact. Download it from the workflow run,
-then install it on the phone (allow installs from unknown sources).
+app. Pushes to the default branch also publish a GitHub release with the APK attached as
+`s-player.apk`. The newest one is always at
+https://github.com/starmano/s-player/releases/latest/download/s-player.apk, and
+https://s-player.bmk.si links to it.
 
 CI builds are signed with a throwaway debug key. To update from one CI build to another you may
 need to uninstall the old one first.
 
 ## Download site
 
-`website/` is a one-page download site hosted at https://s-player.bmk.si. Each CI run bundles
-that page, its `.htaccess` and the latest APK (as `s-player.apk`) into an `s-player-website`
-artifact. After a push to the default branch, the `deploy` job uploads the bundle to the cPanel
-host over FTPS.
+The page at https://s-player.bmk.si lives in `website/`. `app.js` serves it as a small Node.js
+app with no dependencies, the same way S-library is hosted. Its download button redirects to the
+newest release, so the server never needs the APK itself.
 
-The deploy job needs three repository secrets (**Settings → Secrets and variables → Actions**).
-Until they're set it skips itself:
+### Hosting on cPanel
 
-| Secret | Value |
-| --- | --- |
-| `FTP_SERVER` | The FTP host, e.g. `ftp.bmk.si`. If the upload fails with a certificate error, use the server's own hostname from cPanel instead. |
-| `FTP_USERNAME` | An FTP account whose directory is the subdomain's document root, e.g. `deploy@bmk.si` |
-| `FTP_PASSWORD` | That account's password |
+1. **Domain:** under **Domains**, create `s-player.bmk.si`. If `bmk.si`'s DNS is managed
+   somewhere else, add an `A` record there pointing to your cPanel server's IP.
+2. **HTTPS:** under **Security → SSL/TLS Status**, select the domain and click **Run AutoSSL**.
+3. **Code:** in **Files → Git™ Version Control**, click **Create**, keep **Clone a Repository**
+   on, and set **Clone URL** to `https://github.com/starmano/s-player.git` and **Repository
+   Path** to `s-player-app`. The folder must be empty or not exist yet.
+4. **App:** in **Software → Setup Node.js App**, click **Create Application** and set:
+   - Node.js version: 18 or newer (the newest available is best)
+   - Application mode: Production
+   - Application root: `s-player-app`
+   - Application URL: `s-player.bmk.si`
+   - Application startup file: `app.js`
+
+   Click **Create**. There is nothing to `npm install`, because the site has no dependencies.
+5. **Updates:** under **Advanced → Cron Jobs**, add a job that runs every 15 minutes
+   (`*/15 * * * *`) with this command. It pulls new commits and restarts the app only when
+   something changed:
+
+   ```sh
+   cd ~/s-player-app && OLD=$(git rev-parse HEAD) && git pull -q --ff-only && [ "$(git rev-parse HEAD)" != "$OLD" ] && { mkdir -p tmp; touch tmp/restart.txt; cloudlinux-selector restart --json --interpreter nodejs --app-root s-player-app >/dev/null 2>&1 || pkill -u "$(id -un)" -f "lsnode|NodeApp|node app\.js"; }
+   ```
+
+6. **Check:** https://s-player.bmk.si shows the page, and **Download for Android** downloads the
+   newest APK.
+
+New app builds need no cPanel step at all: the button always points at the latest release.
+
+Run the site's tests with `npm test`.
 
 ## Building locally
 
@@ -75,6 +98,7 @@ Requirements: JDK 17+ and the Android SDK (API 35). Android Studio provides both
 | Player, PiP enter/exit, PiP params (aspect ratio, source rect, auto-enter, actions) | `PlayerActivity.kt` |
 | Aspect-ratio clamping and video-bounds maths | `VideoGeometry.kt` |
 | Launcher screen with setup steps and a URL box | `MainActivity.kt` |
+| Download site and its tiny Node.js server | `website/`, `app.js` |
 
 The player activity runs in its own task (`singleTask`, separate `taskAffinity`), so it can float
 above Stremio or any other app. It declares `supportsPictureInPicture` and handles configuration

@@ -21,25 +21,14 @@ jobs:
       - name: Build, test and lint
         run: ./gradlew assembleDebug assembleRelease testDebugUnitTest lintDebug
 
+      - name: Test download site
+        run: npm test
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: s-player-debug
           path: app/build/outputs/apk/debug/*.apk
-
-      # Everything that goes in the s-player.bmk.si folder: the download page plus the APK.
-      - name: Assemble download site
-        run: |
-          mkdir -p build/site
-          cp -r website/. build/site/
-          cp app/build/outputs/apk/debug/app-debug.apk build/site/s-player.apk
-
-      - name: Upload download site
-        uses: actions/upload-artifact@v4
-        with:
-          name: s-player-website
-          path: build/site/
-          include-hidden-files: true
 
       - name: Upload reports
         if: failure()
@@ -48,32 +37,28 @@ jobs:
           name: reports
           path: app/build/reports/
 
-  # Publishes the download site to s-player.bmk.si over FTPS after every push to the default
-  # branch. Does nothing until the FTP_SERVER, FTP_USERNAME and FTP_PASSWORD secrets are set.
-  deploy:
+  # Every push to the default branch becomes a GitHub release with the APK attached as
+  # s-player.apk. The download site links to releases/latest, so it always offers this build.
+  release:
     needs: build
     if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    concurrency: deploy-site
+    permissions:
+      contents: write
+    concurrency: release
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: s-player-website
-          path: site
+          name: s-player-debug
 
-      - name: Upload to s-player.bmk.si
+      - name: Publish release
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$FTP_SERVER" ]; then
-            echo "::notice::FTP secrets are not set, so the site was not deployed."
-            exit 0
-          fi
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq lftp
-          lftp --env-password -u "$FTP_USERNAME" \
-            -e "set net:max-retries 2; set net:timeout 30; set ftp:ssl-force true; set ftp:ssl-protect-data true; mirror --reverse --verbose site/ ./; bye" \
-            "$FTP_SERVER"
+          mv app-debug.apk s-player.apk
+          gh release create "build-${{ github.run_number }}" s-player.apk \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "S Player build ${{ github.run_number }}" \
+            --notes "Built from ${{ github.sha }}." \
+            --latest

@@ -1,0 +1,14 @@
+{
+  "name": "s-player-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Download site for S Player, the picture-in-picture video player for Stremio.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node --test website/server.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
