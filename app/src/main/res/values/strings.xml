@@ -13,6 +13,25 @@
     <string name="error_playback">Playback failed (%1$s)</string>
     <string name="error_pip_unavailable">Picture-in-picture is turned off for S Player in system settings.</string>
 
+    <!-- Audio & subtitles panel -->
+    <string name="audio_and_subtitles">Audio &amp; subtitles</string>
+    <string name="close">Close</string>
+    <string name="audio">Audio</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="subtitles_off">Off</string>
+    <string name="no_audio_tracks">No audio tracks</string>
+    <string name="no_subtitles">This video has no subtitles.</string>
+    <string name="track_forced">Forced</string>
+    <string name="track_not_supported">Not supported on this phone</string>
+    <string name="subtitle_size">Subtitle size</string>
+    <string name="subtitle_size_small">Small</string>
+    <string name="subtitle_size_normal">Normal</string>
+    <string name="subtitle_size_large">Large</string>
+    <string name="subtitle_size_huge">Huge</string>
+    <string name="subtitle_style">Subtitle style</string>
+    <string name="subtitle_style_outline">Outlined text</string>
+    <string name="subtitle_style_box">Dark box</string>
+
     <!-- Launcher screen -->
     <string name="main_tagline">A video player for Stremio that keeps playing in a floating picture-in-picture window, like Netflix and YouTube.</string>
     <string name="main_setup_title">Use it with Stremio</string>

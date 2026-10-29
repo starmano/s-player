@@ -17,6 +17,7 @@ import android.util.Rational
 import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.annotation.StringRes
@@ -60,6 +61,7 @@ import kotlin.math.roundToInt
 class PlayerActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
+    private lateinit var tracksPanel: TracksPanel
     private var request: PlaybackRequest? = null
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
@@ -78,6 +80,12 @@ class PlayerActivity : ComponentActivity() {
     }
     private val maxPipActions by lazy { maxNumPictureInPictureActions }
 
+    // Playback pauses while the audio & subtitles panel is open and resumes when it closes.
+    private var resumeAfterTracksPanel = false
+    private val closeTracksPanelOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = tracksPanel.hide()
+    }
+
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(Player.EVENT_VIDEO_SIZE_CHANGED)) {
@@ -95,6 +103,9 @@ class PlayerActivity : ComponentActivity() {
             ) {
                 binding.playerView.keepScreenOn = player.isPlaybackActive()
                 updatePipParams()
+            }
+            if (events.contains(Player.EVENT_TRACKS_CHANGED) && tracksPanel.isShowing) {
+                tracksPanel.refresh()
             }
         }
 
@@ -150,6 +161,13 @@ class PlayerActivity : ComponentActivity() {
         setUpWindow()
         setUpControls()
         bindTitle()
+        tracksPanel = TracksPanel(
+            binding.tracksPanel,
+            binding.playerView.subtitleView,
+            getSharedPreferences(PREFERENCES, MODE_PRIVATE),
+            ::onTracksPanelVisibilityChanged,
+        )
+        onBackPressedDispatcher.addCallback(this, closeTracksPanelOnBack)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -207,6 +225,7 @@ class PlayerActivity : ComponentActivity() {
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
+            tracksPanel.hide()
             binding.playerView.useController = false
             binding.topBar.isVisible = false
         } else if (lifecycle.currentState == Lifecycle.State.CREATED) {
@@ -239,6 +258,7 @@ class PlayerActivity : ComponentActivity() {
             .setId(UUID.randomUUID().toString())
             .build()
         this.player = player
+        tracksPanel.player = player
         load(player, request)
     }
 
@@ -262,6 +282,7 @@ class PlayerActivity : ComponentActivity() {
         trackSelectionParameters = player.trackSelectionParameters
         mediaSession?.release()
         mediaSession = null
+        tracksPanel.player = null
         binding.playerView.player = null
         player.release()
         this.player = null
@@ -304,7 +325,8 @@ class PlayerActivity : ComponentActivity() {
         binding.playerView.apply {
             setShowPreviousButton(false)
             setShowNextButton(false)
-            setShowSubtitleButton(true)
+            // Subtitles are picked in the audio & subtitles panel instead.
+            setShowSubtitleButton(false)
             setErrorMessageProvider(
                 ErrorMessageProvider<PlaybackException> { error ->
                     android.util.Pair.create(0, getString(R.string.error_playback, error.errorCodeName))
@@ -321,11 +343,33 @@ class PlayerActivity : ComponentActivity() {
             addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updatePipParams() }
         }
         binding.backButton.setOnClickListener { finish() }
+        binding.tracksButton.setOnClickListener { openTracksPanel() }
         binding.pipButton.isVisible = supportsPip
         binding.pipButton.setOnClickListener {
             if (!enterPip()) {
                 Toast.makeText(this, R.string.error_pip_unavailable, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun openTracksPanel() {
+        resumeAfterTracksPanel = player?.isPlaybackActive() == true
+        player?.pause()
+        // Keeps the controls from popping up behind the panel while paused.
+        binding.playerView.useController = false
+        tracksPanel.show()
+    }
+
+    private fun onTracksPanelVisibilityChanged(visible: Boolean) {
+        closeTracksPanelOnBack.isEnabled = visible
+        if (visible) return
+        if (isInPictureInPictureMode) return
+        binding.playerView.useController = true
+        if (resumeAfterTracksPanel) {
+            resumeAfterTracksPanel = false
+            player?.play()
+        } else {
+            binding.playerView.showController()
         }
     }
 
@@ -409,6 +453,7 @@ class PlayerActivity : ComponentActivity() {
         const val HTTP_TIMEOUT_MS = 30_000
         const val USER_AGENT_NAME = "SPlayer"
         const val KEY_POSITION = "position"
+        const val PREFERENCES = "player"
     }
 }
 

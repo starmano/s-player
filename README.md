@@ -19,8 +19,12 @@ expand back to full screen.
 - **Built for Stremio streams**: HTTP(S), HLS and DASH, plus MKV/MP4/WebM files from Stremio's
   local torrent server (with generous timeouts for slow-starting torrents). Also custom HTTP
   headers and side-loaded subtitles via the common MX Player / VLC intent extras.
-- Full-screen landscape playback with Media3 (ExoPlayer) controls, including audio, subtitle and
-  speed selection, plus headset button support through a media session.
+- **Audio & subtitles panel** (button in the top bar), Netflix style: pick the audio track and
+  subtitle track (or turn subtitles off), and choose the subtitle size and style (outlined text or
+  a dark box), which are remembered. Audio tracks show their format (Dolby Digital, DTS, ...),
+  and tracks the phone can't decode are listed as not supported instead of silently missing.
+- Full-screen landscape playback with Media3 (ExoPlayer) controls, including playback speed,
+  plus headset button support through a media session.
 
 ## Using it with Stremio
 
@@ -97,6 +101,7 @@ Requirements: JDK 17+ and the Android SDK (API 35). Android Studio provides both
 | Intent filter that makes S Player show up as an external video player | `app/src/main/AndroidManifest.xml` |
 | Parsing the stream URL, title, start position, headers and subtitles from the launching intent | `PlaybackRequest.kt` |
 | Player, PiP enter/exit, PiP params (aspect ratio, source rect, auto-enter, actions) | `PlayerActivity.kt` |
+| Audio & subtitles panel: track lists, subtitle size and style | `TracksPanel.kt`, `TrackLabels.kt` |
 | Aspect-ratio clamping and video-bounds maths | `VideoGeometry.kt` |
 | Launcher screen with setup steps and a URL box | `MainActivity.kt` |
 | Download site and its tiny Node.js server | `website/`, `app.js` |

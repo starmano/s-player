@@ -45,6 +45,14 @@
             android:textColor="@android:color/white" />
 
         <ImageButton
+            android:id="@+id/tracks_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/audio_and_subtitles"
+            android:src="@drawable/ic_subtitles" />
+
+        <ImageButton
             android:id="@+id/pip_button"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -52,4 +60,11 @@
             android:contentDescription="@string/enter_pip"
             android:src="@drawable/ic_pip" />
     </LinearLayout>
+
+    <include
+        android:id="@+id/tracks_panel"
+        layout="@layout/tracks_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 </FrameLayout>
