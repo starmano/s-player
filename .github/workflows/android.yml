@@ -47,3 +47,33 @@ jobs:
         with:
           name: reports
           path: app/build/reports/
+
+  # Publishes the download site to s-player.bmk.si over FTPS after every push to the default
+  # branch. Does nothing until the FTP_SERVER, FTP_USERNAME and FTP_PASSWORD secrets are set.
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency: deploy-site
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: s-player-website
+          path: site
+
+      - name: Upload to s-player.bmk.si
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ -z "$FTP_SERVER" ]; then
+            echo "::notice::FTP secrets are not set, so the site was not deployed."
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lftp
+          lftp --env-password -u "$FTP_USERNAME" \
+            -e "set net:max-retries 2; set net:timeout 30; set ftp:ssl-force true; set ftp:ssl-protect-data true; mirror --reverse --verbose site/ ./; bye" \
+            "$FTP_SERVER"

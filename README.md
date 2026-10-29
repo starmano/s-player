@@ -42,10 +42,19 @@ need to uninstall the old one first.
 
 ## Download site
 
-`website/` is a one-page download site hosted at https://s-player.bmk.si. Each CI run also
-uploads an `s-player-website` artifact containing that page, its `.htaccess` and the latest APK
-as `s-player.apk`. To publish a new build, extract that artifact into the subdomain's document
-root in cPanel's File Manager.
+`website/` is a one-page download site hosted at https://s-player.bmk.si. Each CI run bundles
+that page, its `.htaccess` and the latest APK (as `s-player.apk`) into an `s-player-website`
+artifact. After a push to the default branch, the `deploy` job uploads the bundle to the cPanel
+host over FTPS.
+
+The deploy job needs three repository secrets (**Settings → Secrets and variables → Actions**).
+Until they're set it skips itself:
+
+| Secret | Value |
+| --- | --- |
+| `FTP_SERVER` | The FTP host, e.g. `ftp.bmk.si`. If the upload fails with a certificate error, use the server's own hostname from cPanel instead. |
+| `FTP_USERNAME` | An FTP account whose directory is the subdomain's document root, e.g. `deploy@bmk.si` |
+| `FTP_PASSWORD` | That account's password |
 
 ## Building locally
 
