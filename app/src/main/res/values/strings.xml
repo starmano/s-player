@@ -21,7 +21,6 @@
     <string name="subtitles_off">Off</string>
     <string name="no_audio_tracks">No audio tracks</string>
     <string name="no_subtitles">This video has no subtitles.</string>
-    <string name="track_forced">Forced</string>
     <string name="track_not_supported">Not supported on this phone</string>
     <string name="subtitle_size">Subtitle size</string>
     <string name="subtitle_size_small">Small</string>

@@ -2,6 +2,8 @@ package com.starmano.splayer
 
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -9,22 +11,25 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.annotation.OptIn
 import androidx.core.content.edit
+import androidx.core.text.buildSpannedString
+import androidx.core.text.inSpans
 import androidx.core.view.isVisible
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.ui.CaptionStyleCompat
-import androidx.media3.ui.DefaultTrackNameProvider
 import androidx.media3.ui.SubtitleView
 import com.starmano.splayer.databinding.TracksPanelBinding
 
 /**
  * Netflix-style overlay for choosing the audio track, the subtitle track and how subtitles look.
  *
- * Unlike Media3's built-in menus it also lists tracks the phone can't decode (marked as such, so
- * it's clear why a DTS track won't play), and it remembers the subtitle size and style.
+ * Each track is listed by language (dubbed movies have one audio track per language) with its
+ * name, kind, channels and format underneath. Unlike Media3's built-in menus it also lists
+ * tracks the phone can't decode, marked as such, and it remembers the subtitle size and style.
  */
 @OptIn(UnstableApi::class)
 class TracksPanel(
@@ -39,7 +44,7 @@ class TracksPanel(
         get() = binding.root.isVisible
 
     private val context = binding.root.context
-    private val trackNames = DefaultTrackNameProvider(context.resources)
+    private val detailColor = context.getColor(R.color.text_secondary)
 
     private var subtitleSize = SubtitleSize.entries
         .firstOrNull { it.name == preferences.getString(KEY_SUBTITLE_SIZE, null) }
@@ -89,14 +94,24 @@ class TracksPanel(
             for (index in 0 until group.length) {
                 val format = group.getTrackFormat(index)
                 val supported = group.isTrackSupported(index)
-                val forced = (format.selectionFlags and C.SELECTION_FLAG_FORCED) != 0
-                val label = trackLabel(
-                    trackNames.getTrackName(format),
-                    if (trackType == C.TRACK_TYPE_AUDIO) audioCodecName(format.sampleMimeType) else null,
-                    if (forced) context.getString(R.string.track_forced) else null,
-                    if (!supported) context.getString(R.string.track_not_supported) else null,
+                // Side-loaded subtitles often carry their language only as a name like "eng".
+                val language = format.language
+                    ?: format.label?.takeIf(::looksLikeLanguageCode)?.let(Util::normalizeLanguageCode)
+                val description = describeTrack(
+                    language,
+                    format.label,
+                    isAudio = trackType == C.TRACK_TYPE_AUDIO,
+                    format.channelCount,
+                    format.sampleMimeType,
+                    format.roleFlags,
+                    format.selectionFlags,
                 )
-                val option = addOption(list, label, enabled = supported)
+                val details = if (supported) {
+                    description.details
+                } else {
+                    description.details + context.getString(R.string.track_not_supported)
+                }
+                val option = addOption(list, optionText(description.title, details), enabled = supported)
                 actions[option.id] = { select(group, index) }
                 if (group.isTrackSelected(index)) checkedId = option.id
                 count++
@@ -107,7 +122,19 @@ class TracksPanel(
         return count
     }
 
-    private fun addOption(list: RadioGroup, label: String, enabled: Boolean): RadioButton {
+    /** The track's language on the first line and its details, smaller, on the second. */
+    private fun optionText(title: String, details: List<String>): CharSequence {
+        if (details.isEmpty()) return title
+        return buildSpannedString {
+            append(title)
+            append('\n')
+            inSpans(RelativeSizeSpan(0.8f), ForegroundColorSpan(detailColor)) {
+                append(details.joinToString(" · "))
+            }
+        }
+    }
+
+    private fun addOption(list: RadioGroup, label: CharSequence, enabled: Boolean): RadioButton {
         val option = RadioButton(context, null, 0, R.style.TracksPanelOption).apply {
             id = View.generateViewId()
             text = label

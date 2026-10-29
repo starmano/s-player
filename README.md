@@ -21,8 +21,9 @@ expand back to full screen.
   headers and side-loaded subtitles via the common MX Player / VLC intent extras.
 - **Audio & subtitles panel** (button in the top bar), Netflix style: pick the audio track and
   subtitle track (or turn subtitles off), and choose the subtitle size and style (outlined text or
-  a dark box), which are remembered. Audio tracks show their format (Dolby Digital, DTS, ...),
-  and tracks the phone can't decode are listed as not supported instead of silently missing.
+  a dark box), which are remembered. Tracks are listed by language, so dubbed versions are easy
+  to pick, with the track's name, kind (commentary, SDH, forced), channels and format below.
+  Tracks the phone can't decode are listed as not supported instead of silently missing.
 - Full-screen landscape playback with Media3 (ExoPlayer) controls, including playback speed,
   plus headset button support through a media session.
 
