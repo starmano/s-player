@@ -14,6 +14,9 @@ const APK_URL = 'https://github.com/starmano/s-player/releases/latest/download/s
 // How long GitHub gets to start answering before visitors are redirected there instead.
 const UPSTREAM_TIMEOUT_MS = 15_000;
 
+// How long /version.json reuses the newest build number before asking GitHub again.
+const VERSION_CACHE_MS = 5 * 60_000;
+
 const PAGES = {
   '/': { file: 'index.html', type: 'text/html; charset=utf-8' },
   '/index.html': { file: 'index.html', type: 'text/html; charset=utf-8' },
@@ -21,6 +24,14 @@ const PAGES = {
 };
 
 function createServer({ apkUrl = APK_URL } = {}) {
+  let cachedBuild = { build: null, expires: 0 };
+  async function latestBuild() {
+    if (Date.now() < cachedBuild.expires) return cachedBuild.build;
+    const build = await fetchLatestBuild(apkUrl);
+    if (build !== null) cachedBuild = { build, expires: Date.now() + VERSION_CACHE_MS };
+    return build;
+  }
+
   return http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, { Allow: 'GET, HEAD' }).end();
@@ -30,6 +41,10 @@ function createServer({ apkUrl = APK_URL } = {}) {
     const { pathname } = new URL(req.url, 'http://localhost');
     if (pathname === '/s-player.apk') {
       await sendApk(req, res, apkUrl);
+      return;
+    }
+    if (pathname === '/version.json') {
+      await sendVersion(req, res, latestBuild);
       return;
     }
 
@@ -92,6 +107,37 @@ async function sendApk(req, res, apkUrl) {
   Readable.fromWeb(upstream.body)
     .on('error', () => res.destroy())
     .pipe(res);
+}
+
+/**
+ * The newest build number. GitHub answers the "latest" download link with a redirect to the
+ * newest release (.../download/build-12/s-player.apk), so this needs no GitHub API calls.
+ */
+async function fetchLatestBuild(apkUrl) {
+  const upstream = await fetch(apkUrl, {
+    method: 'HEAD',
+    redirect: 'manual',
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  });
+  const match = /\/download\/build-(\d+)\//.exec(upstream.headers.get('location') ?? '');
+  return match ? Number(match[1]) : null;
+}
+
+/** Tells the app which build is newest, e.g. {"build":12,"apk":"/s-player.apk"}. */
+async function sendVersion(req, res, latestBuild) {
+  let build = null;
+  try {
+    build = await latestBuild();
+  } catch (error) {
+    console.error(`Checking the newest build failed: ${error.message}`);
+  }
+  const body = JSON.stringify(build === null ? { error: 'unavailable' } : { build, apk: '/s-player.apk' });
+  res.writeHead(build === null ? 503 : 200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-cache',
+  });
+  res.end(req.method === 'HEAD' ? undefined : body);
 }
 
 module.exports = { createServer, APK_URL };

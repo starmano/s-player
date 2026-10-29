@@ -28,6 +28,22 @@
             android:textSize="16sp" />
 
         <TextView
+            android:id="@+id/update_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/update_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/update_install"
+            android:visibility="gone" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
@@ -75,5 +91,13 @@
             android:layout_gravity="end"
             android:layout_marginTop="8dp"
             android:text="@string/play" />
+
+        <TextView
+            android:id="@+id/version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

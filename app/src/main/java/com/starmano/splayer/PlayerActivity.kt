@@ -22,12 +22,14 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ErrorMessageProvider
@@ -45,6 +47,9 @@ import androidx.media3.ui.PlayerView
 import com.starmano.splayer.databinding.ActivityPlayerBinding
 import java.util.UUID
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Full-screen video player that shrinks into a floating picture-in-picture window, the way
@@ -168,6 +173,7 @@ class PlayerActivity : ComponentActivity() {
             ::onTracksPanelVisibilityChanged,
         )
         onBackPressedDispatcher.addCallback(this, closeTracksPanelOnBack)
+        mentionAvailableUpdate()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -373,6 +379,23 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * S Player is mostly opened through Stremio, so once a day the player checks for a newer
+     * version and points to the app's launcher screen, where it can be installed.
+     */
+    private fun mentionAvailableUpdate() {
+        val preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        if (now - preferences.getLong(KEY_LAST_UPDATE_CHECK, 0) < UPDATE_CHECK_INTERVAL_MS) return
+        preferences.edit { putLong(KEY_LAST_UPDATE_CHECK, now) }
+        lifecycleScope.launch {
+            val latest = withContext(Dispatchers.IO) { runCatching { Updates.latestBuild() }.getOrNull() }
+            if (latest != null && latest > Updates.currentBuild(this@PlayerActivity)) {
+                Toast.makeText(this@PlayerActivity, R.string.update_available_toast, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     private fun bindTitle() {
         binding.title.text = request?.title.orEmpty()
     }
@@ -454,6 +477,8 @@ class PlayerActivity : ComponentActivity() {
         const val USER_AGENT_NAME = "SPlayer"
         const val KEY_POSITION = "position"
         const val PREFERENCES = "player"
+        const val KEY_LAST_UPDATE_CHECK = "last_update_check"
+        const val UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
     }
 }
 

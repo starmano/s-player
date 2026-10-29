@@ -43,8 +43,32 @@ app. Pushes to the default branch also publish a GitHub release with the APK att
 https://github.com/starmano/s-player/releases/latest/download/s-player.apk, and
 https://s-player.bmk.si links to it.
 
-CI builds are signed with a throwaway debug key. To update from one CI build to another you may
-need to uninstall the old one first.
+## Updates
+
+S Player updates itself. Its launcher screen checks https://s-player.bmk.si/version.json for a
+newer build, then downloads it and opens Android's installer when you tap **Install update**.
+The first time, Android asks you to allow S Player to install apps. When a video starts, the
+player checks once a day and mentions an available update.
+
+Every CI build is numbered after its workflow run. That number is both the app's `versionCode`
+and the release tag (`build-N`) that the site reports.
+
+### Signing key (one-time setup)
+
+Android only installs an update over an app signed with the same key, so release builds are
+signed with a permanent key instead of a throwaway debug key:
+
+1. On GitHub, open **Settings → Secrets and variables → Actions → New repository secret**. Add
+   `SIGNING_PASSWORD` with a long password, and keep a copy of it, e.g. in a password manager:
+   without it no future build can update the app.
+2. Under **Actions → Create signing key**, click **Run workflow**. It creates the key and commits
+   it as `app/signing.p12`, encrypted with that password, which is useless without it.
+3. Under **Actions → Android**, click **Run workflow** to publish a build signed with the new key.
+   Uninstall the old S Player and install this build from the site once. From then on, updates
+   install over the top.
+
+Without the secret or the key file (local builds, forks), release builds are signed with the
+debug key.
 
 ## Download site
 

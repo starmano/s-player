@@ -1,0 +1,37 @@
+name: Create signing key
+
+# Run once, by hand, after adding the SIGNING_PASSWORD secret. It creates the key every release
+# build is signed with and commits it as app/signing.p12, encrypted with that password, so
+# that each new build can install over the previous one.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create and commit the key
+        env:
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          if [ ${#SIGNING_PASSWORD} -lt 12 ]; then
+            echo "::error::Add a SIGNING_PASSWORD secret of at least 12 characters first."
+            exit 1
+          fi
+          if [ -e app/signing.p12 ]; then
+            echo "::error::app/signing.p12 already exists. A new key would stop updates from installing over the current app, so it is left alone."
+            exit 1
+          fi
+          keytool -genkeypair -keystore app/signing.p12 -storetype PKCS12 \
+            -storepass:env SIGNING_PASSWORD -alias s-player \
+            -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=S Player"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/signing.p12
+          git commit -m "Add the app signing key (encrypted with the SIGNING_PASSWORD secret)"
+          git push

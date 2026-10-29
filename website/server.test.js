@@ -19,15 +19,20 @@ let base;
 let upstreamUrl;
 
 before(async () => {
+  // Like GitHub: the "latest" link redirects to the newest release's file.
   const upstream = http.createServer((req, res) => {
-    if (req.url !== '/s-player.apk') {
+    if (req.url === '/latest/download/s-player.apk') {
+      res.writeHead(302, { Location: '/download/build-12/s-player.apk' }).end();
+      return;
+    }
+    if (req.url !== '/download/build-12/s-player.apk') {
       res.writeHead(404).end();
       return;
     }
     res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Length': APK_BYTES.length });
     res.end(req.method === 'HEAD' ? undefined : APK_BYTES);
   });
-  upstreamUrl = `${await listen(upstream)}/s-player.apk`;
+  upstreamUrl = `${await listen(upstream)}/latest/download/s-player.apk`;
   const site = createServer({ apkUrl: upstreamUrl });
   base = await listen(site);
   servers.push(upstream, site);
@@ -79,6 +84,21 @@ test('redirects to GitHub when it cannot be reached at all', async () => {
   const res = await fetch(`${await listen(site)}/s-player.apk`, { redirect: 'manual' });
   assert.equal(res.status, 302);
   assert.equal(res.headers.get('location'), unreachable);
+});
+
+test('tells the app which build is newest', async () => {
+  const res = await fetch(`${base}/version.json`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /^application\/json/);
+  assert.deepEqual(await res.json(), { build: 12, apk: '/s-player.apk' });
+});
+
+test('reports when the newest build is unknown', async () => {
+  const site = createServer({ apkUrl: `${upstreamUrl}.missing` });
+  servers.push(site);
+  const res = await fetch(`${await listen(site)}/version.json`);
+  assert.equal(res.status, 503);
+  assert.deepEqual(await res.json(), { error: 'unavailable' });
 });
 
 test('answers HEAD for the page without a body', async () => {

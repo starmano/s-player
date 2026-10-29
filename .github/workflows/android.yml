@@ -19,16 +19,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build, test and lint
-        run: ./gradlew assembleDebug assembleRelease testDebugUnitTest lintDebug
+        env:
+          # Signs the release build with app/signing.p12 so it can update earlier installs.
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew assembleRelease testDebugUnitTest lintDebug
 
       - name: Test download site
         run: npm test
 
-      - name: Upload debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: s-player-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: s-player
+          path: app/build/outputs/apk/release/app-release.apk
 
       - name: Upload reports
         if: failure()
@@ -37,11 +40,14 @@ jobs:
           name: reports
           path: app/build/reports/
 
-  # Every push to the default branch becomes a GitHub release with the APK attached as
-  # s-player.apk. The download site links to releases/latest, so it always offers this build.
+  # Every push to the default branch becomes a GitHub release named after its build number
+  # (build-N, which is also the app's versionCode) with the APK attached as s-player.apk. The
+  # download site and the app's update check both look at the latest release.
   release:
     needs: build
-    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -49,13 +55,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: s-player-debug
+          name: s-player
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mv app-debug.apk s-player.apk
+          mv app-release.apk s-player.apk
           gh release create "build-${{ github.run_number }}" s-player.apk \
             --repo "${{ github.repository }}" \
             --target "${{ github.sha }}" \

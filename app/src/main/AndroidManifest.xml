@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Lets the app install its own updates (Android asks the user to allow this once). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Cleartext is required: Stremio's local streaming server and many addons serve plain http. -->
     <application
@@ -55,6 +57,17 @@
                 <data android:mimeType="application/dash+xml" />
             </intent-filter>
         </activity>
+
+        <!-- Hands downloaded updates to Android's installer. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
     </application>
 
 </manifest>

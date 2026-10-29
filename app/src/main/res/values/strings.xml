@@ -39,4 +39,17 @@
     <string name="main_try_title">Play a stream URL</string>
     <string name="url_hint">https://example.com/video.mp4</string>
     <string name="invalid_url">Enter a full URL, such as https://example.com/video.mp4</string>
+
+    <!-- Updates -->
+    <string name="version_label">Version %1$s (build %2$d)</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_up_to_date">You have the latest version.</string>
+    <string name="update_available">A new version of S Player is available.</string>
+    <string name="update_check_failed">Couldn\'t check for updates.</string>
+    <string name="update_install">Install update</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_downloading_percent">Downloading update… %1$d%%</string>
+    <string name="update_download_failed">The update couldn\'t be downloaded. Try again later.</string>
+    <string name="update_install_failed">Android\'s installer couldn\'t be opened.</string>
+    <string name="update_available_toast">A new version of S Player is available. Open the S Player app to install it.</string>
 </resources>
