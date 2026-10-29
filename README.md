@@ -138,6 +138,8 @@ changes itself, so entering and leaving PiP never recreates it.
 
 - **Android only.** On iOS, Stremio only hands off to a fixed list of players, so a third-party
   player can't plug in the same way.
-- Audio codecs are whatever the phone supports. Many phones lack DTS/TrueHD decoders, so those
-  tracks need Media3's FFmpeg extension, which isn't bundled.
+- Audio formats the phone can't decode itself (Dolby Digital, Dolby Digital Plus, DTS, TrueHD,
+  ...) are decoded with the bundled FFmpeg decoder, Jellyfin's prebuilt
+  `org.jellyfin.media3:media3-ffmpeg-decoder`. It is GPL-3.0 licensed, which also applies to the
+  distributed APK.
 - Watch progress isn't reported back to Stremio.
