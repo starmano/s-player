@@ -1,0 +1,10 @@
+# Serve the APK with its proper type so phones offer to install it
+# instead of showing it as text or saving it as a zip.
+AddType application/vnd.android.package-archive .apk
+
+<IfModule mod_headers.c>
+  # Always hand out the newest build.
+  <FilesMatch "\.apk$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

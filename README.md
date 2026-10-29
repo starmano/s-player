@@ -40,6 +40,13 @@ then install it on the phone (allow installs from unknown sources).
 CI builds are signed with a throwaway debug key. To update from one CI build to another you may
 need to uninstall the old one first.
 
+## Download site
+
+`website/` is a one-page download site hosted at https://s-player.bmk.si. Each CI run also
+uploads an `s-player-website` artifact containing that page, its `.htaccess` and the latest APK
+as `s-player.apk`. To publish a new build, extract that artifact into the subdomain's document
+root in cPanel's File Manager.
+
 ## Building locally
 
 Requirements: JDK 17+ and the Android SDK (API 35). Android Studio provides both.

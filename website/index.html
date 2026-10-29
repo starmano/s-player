@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>S Player</title>
+  <meta name="description" content="A video player for Stremio on Android that keeps playing in a floating picture-in-picture window, like Netflix and YouTube.">
+  <meta name="theme-color" content="#0f0d16">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #0f0d16;
+      --surface: #1a1724;
+      --border: #2b2738;
+      --text: #f2f0f7;
+      --muted: #a9a4b8;
+      --accent: #7b5bf5;
+      --accent-hover: #8d71f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 48px 16px 24px;
+    }
+
+    .hero { text-align: center; }
+
+    .hero img { border-radius: 22px; }
+
+    h1 {
+      margin: 16px 0 4px;
+      font-size: 2.25rem;
+      line-height: 1.2;
+    }
+
+    .tagline {
+      margin: 0 auto;
+      max-width: 26em;
+      color: var(--muted);
+      font-size: 1.125rem;
+    }
+
+    .download {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 14px 32px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.125rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .download:hover { background: var(--accent-hover); }
+
+    .download:focus-visible {
+      outline: 3px solid var(--text);
+      outline-offset: 3px;
+    }
+
+    .meta {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    h2 {
+      margin: 48px 0 16px;
+      font-size: 1.25rem;
+    }
+
+    .steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+
+    .steps li {
+      position: relative;
+      margin-bottom: 16px;
+      padding-left: 44px;
+      counter-increment: step;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 700;
+      line-height: 28px;
+      text-align: center;
+    }
+
+    .features {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .features li {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+
+    .features h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .features p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .note {
+      margin-top: 40px;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    footer {
+      padding: 24px 16px 40px;
+      text-align: center;
+      font-size: 0.875rem;
+    }
+
+    a { color: var(--accent-hover); }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <img src="icon.svg" width="96" height="96" alt="">
+      <h1>S Player</h1>
+      <p class="tagline">Watch Stremio in a floating window that stays on top while you use your phone, like Netflix and YouTube.</p>
+      <a class="download" href="s-player.apk" download>Download for Android</a>
+      <p class="meta">Android 8.0 or newer · Free</p>
+    </header>
+
+    <section>
+      <h2>Install</h2>
+      <ol class="steps">
+        <li><strong>Download</strong> the app on your Android phone.</li>
+        <li><strong>Open the file</strong> and tap Install. If Android asks, allow your browser to install apps first.</li>
+        <li><strong>Choose it in Stremio:</strong> go to Settings → Player and pick S Player as the external player.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>What it does</h2>
+      <ul class="features">
+        <li>
+          <h3>Picture-in-picture</h3>
+          <p>Go home while a video plays and it keeps going in a window you can move and resize.</p>
+        </li>
+        <li>
+          <h3>Controls in the window</h3>
+          <p>Back 10 seconds, play or pause, and forward 10 seconds without opening the app.</p>
+        </li>
+        <li>
+          <h3>Made for Stremio</h3>
+          <p>Plays Stremio's torrent and addon streams, including HLS and DASH.</p>
+        </li>
+      </ul>
+    </section>
+
+    <p class="note">Updating from an older version and Android says the app wasn't installed? Uninstall the old S Player first, then install the new one.</p>
+  </main>
+
+  <footer>
+    <a href="https://github.com/starmano/s-player">Source code on GitHub</a>
+  </footer>
+</body>
+</html>

@@ -27,6 +27,20 @@ jobs:
           name: s-player-debug
           path: app/build/outputs/apk/debug/*.apk
 
+      # Everything that goes in the s-player.bmk.si folder: the download page plus the APK.
+      - name: Assemble download site
+        run: |
+          mkdir -p build/site
+          cp -r website/. build/site/
+          cp app/build/outputs/apk/debug/app-debug.apk build/site/s-player.apk
+
+      - name: Upload download site
+        uses: actions/upload-artifact@v4
+        with:
+          name: s-player-website
+          path: build/site/
+          include-hidden-files: true
+
       - name: Upload reports
         if: failure()
         uses: actions/upload-artifact@v4
