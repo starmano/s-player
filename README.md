@@ -45,8 +45,9 @@ need to uninstall the old one first.
 ## Download site
 
 The page at https://s-player.bmk.si lives in `website/`. `app.js` serves it as a small Node.js
-app with no dependencies, the same way S-library is hosted. Its download button redirects to the
-newest release, so the server never needs the APK itself.
+app with no dependencies, the same way S-library is hosted. Its download button streams the APK
+from the newest release, so phones download it from s-player.bmk.si without the server keeping a
+copy. If GitHub can't be reached, the button redirects there instead.
 
 ### Hosting on cPanel
 
