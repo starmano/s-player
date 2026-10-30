@@ -26,7 +26,7 @@ internal const val SIDELOADED_SUBTITLE_MIME_TYPE = "application/x-splayer-sidelo
 internal enum class SubtitleFileFormat { SUBRIP, WEBVTT, SSA }
 
 internal fun detectSubtitleFormat(text: String): SubtitleFileFormat {
-    val start = text.trimStart('﻿', ' ', '\t', '\r', '\n')
+    val start = text.trimStart('\uFEFF', ' ', '\t', '\r', '\n')
     return when {
         start.startsWith("WEBVTT") -> SubtitleFileFormat.WEBVTT
         start.startsWith("[Script Info]", ignoreCase = true) || "[Events]" in text -> SubtitleFileFormat.SSA

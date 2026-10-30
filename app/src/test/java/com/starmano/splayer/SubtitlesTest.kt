@@ -10,7 +10,7 @@ class SubtitlesTest {
     @Test
     fun detectsTheFormatFromTheFileItself() {
         assertEquals(SubtitleFileFormat.SUBRIP, detectSubtitleFormat(srt))
-        assertEquals(SubtitleFileFormat.WEBVTT, detectSubtitleFormat("﻿WEBVTT\n\n00:01.000 --> 00:02.000\nHi"))
+        assertEquals(SubtitleFileFormat.WEBVTT, detectSubtitleFormat("\uFEFFWEBVTT\n\n00:01.000 --> 00:02.000\nHi"))
         assertEquals(SubtitleFileFormat.SSA, detectSubtitleFormat("[Script Info]\nTitle: x\n\n[Events]\n"))
         assertEquals(SubtitleFileFormat.SSA, detectSubtitleFormat("; comment\n[V4+ Styles]\n[Events]\n"))
     }
