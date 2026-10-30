@@ -40,6 +40,9 @@ class TracksPanel(
 ) {
     var player: Player? = null
 
+    /** Ids of subtitle files that couldn't be downloaded or read; shown as such. */
+    var failedTrackIds: Set<String> = emptySet()
+
     val isShowing: Boolean
         get() = binding.root.isVisible
 
@@ -93,7 +96,8 @@ class TracksPanel(
             if (group.type != trackType) continue
             for (index in 0 until group.length) {
                 val format = group.getTrackFormat(index)
-                val supported = group.isTrackSupported(index)
+                val failed = format.id != null && format.id in failedTrackIds
+                val supported = group.isTrackSupported(index) && !failed
                 // Side-loaded subtitles often carry their language only as a name like "eng".
                 val language = format.language
                     ?: format.label?.takeIf(::looksLikeLanguageCode)?.let(Util::normalizeLanguageCode)
@@ -103,13 +107,14 @@ class TracksPanel(
                     isAudio = trackType == C.TRACK_TYPE_AUDIO,
                     format.channelCount,
                     format.sampleMimeType,
+                    format.codecs,
                     format.roleFlags,
                     format.selectionFlags,
                 )
-                val details = if (supported) {
-                    description.details
-                } else {
-                    description.details + context.getString(R.string.track_not_supported)
+                val details = when {
+                    failed -> description.details + context.getString(R.string.track_load_failed)
+                    !supported -> description.details + context.getString(R.string.track_not_supported)
+                    else -> description.details
                 }
                 val option = addOption(list, optionText(description.title, details), enabled = supported)
                 actions[option.id] = { select(group, index) }

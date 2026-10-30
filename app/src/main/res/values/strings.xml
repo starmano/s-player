@@ -22,6 +22,7 @@
     <string name="no_audio_tracks">No audio tracks</string>
     <string name="no_subtitles">This video has no subtitles.</string>
     <string name="track_not_supported">Not supported on this phone</string>
+    <string name="track_load_failed">Couldn\'t be loaded</string>
     <string name="subtitle_size">Subtitle size</string>
     <string name="subtitle_size_small">Small</string>
     <string name="subtitle_size_normal">Normal</string>

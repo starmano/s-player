@@ -34,22 +34,6 @@ class PlaybackRequestTest {
     }
 
     @Test
-    fun subtitleFormatIsGuessedFromTheUrl() {
-        assertEquals(MimeTypes.TEXT_VTT, subtitleMimeType("https://example.com/en.vtt?token=abc"))
-        assertEquals(MimeTypes.TEXT_SSA, subtitleMimeType("https://example.com/EN.ASS"))
-        assertEquals(MimeTypes.APPLICATION_TTML, subtitleMimeType("file:///sdcard/subs.dfxp"))
-        assertEquals(MimeTypes.APPLICATION_SUBRIP, subtitleMimeType("https://example.com/en.srt#frag"))
-    }
-
-    @Test
-    fun subtitlesWithoutExtensionFallBackToSubRip() {
-        assertEquals(
-            MimeTypes.APPLICATION_SUBRIP,
-            subtitleMimeType("https://subs.example.com/en/download/file/12345"),
-        )
-    }
-
-    @Test
     fun fileNamesBecomeTitles() {
         assertEquals("Big.Buck.Bunny.1080p.mkv", titleFromPathSegment("Big.Buck.Bunny.1080p.mkv"))
     }

@@ -25,7 +25,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = buildNumber
-        versionName = "0.3.2"
+        versionName = "0.3.3"
         // The FFmpeg decoder is native code; phones are ARM, so leave out the x86 copies.
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")

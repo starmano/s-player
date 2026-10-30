@@ -37,7 +37,11 @@ data class PlaybackRequest(
         .setSubtitleConfigurations(
             subtitles.map { subtitle ->
                 MediaItem.SubtitleConfiguration.Builder(subtitle.uri)
-                    .setMimeType(subtitleMimeType(subtitle.uri.toString()))
+                    // The real format is detected from the file; see SubtitleParserFactory.
+                    .setMimeType(SIDELOADED_SUBTITLE_MIME_TYPE)
+                    // Lets the audio & subtitles panel tell which track came from which file.
+                    .setId(subtitle.uri.toString())
+                    .setLanguage(subtitle.label?.takeIf(::looksLikeLanguageCode))
                     .setLabel(subtitle.label)
                     .setSelectionFlags(if (subtitle.selected) C.SELECTION_FLAG_DEFAULT else 0)
                     .build()
@@ -117,18 +121,6 @@ internal fun parseHeaders(flat: Array<String>?): Map<String, String> {
         .chunked(2)
         .filter { it.size == 2 && it[0].isNotBlank() }
         .associate { (name, value) -> name to value }
-}
-
-/** Media3 can't sniff side-loaded subtitle formats; guess from the URL and fall back to SubRip. */
-@OptIn(UnstableApi::class)
-internal fun subtitleMimeType(url: String): String {
-    val path = url.substringBefore('#').substringBefore('?').lowercase()
-    return when {
-        path.endsWith(".vtt") || path.endsWith(".webvtt") -> MimeTypes.TEXT_VTT
-        path.endsWith(".ass") || path.endsWith(".ssa") -> MimeTypes.TEXT_SSA
-        path.endsWith(".ttml") || path.endsWith(".dfxp") || path.endsWith(".xml") -> MimeTypes.APPLICATION_TTML
-        else -> MimeTypes.APPLICATION_SUBRIP
-    }
 }
 
 /**

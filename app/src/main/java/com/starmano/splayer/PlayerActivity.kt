@@ -42,6 +42,10 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.LoadEventInfo
+import androidx.media3.exoplayer.source.MediaLoadData
+import java.io.IOException
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
@@ -85,6 +89,33 @@ class PlayerActivity : ComponentActivity() {
         packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
     private val maxPipActions by lazy { maxNumPictureInPictureActions }
+
+    // Subtitle files that failed to load. Media3 ignores those errors, so without this the track
+    // would simply show nothing.
+    private val failedSubtitleUris = mutableSetOf<String>()
+    private val subtitleErrorListener = object : AnalyticsListener {
+        override fun onLoadError(
+            eventTime: AnalyticsListener.EventTime,
+            loadEventInfo: LoadEventInfo,
+            mediaLoadData: MediaLoadData,
+            error: IOException,
+            wasCanceled: Boolean,
+        ) {
+            val uri = loadEventInfo.dataSpec.uri.toString()
+            if (request?.subtitles?.any { it.uri.toString() == uri } != true) return
+            failedSubtitleUris += uri
+            showFailedSubtitles()
+        }
+
+        // Media3 retries failed loads, so a file can still arrive after an error.
+        override fun onLoadCompleted(
+            eventTime: AnalyticsListener.EventTime,
+            loadEventInfo: LoadEventInfo,
+            mediaLoadData: MediaLoadData,
+        ) {
+            if (failedSubtitleUris.remove(loadEventInfo.dataSpec.uri.toString())) showFailedSubtitles()
+        }
+    }
 
     // Playback pauses while the audio & subtitles panel is open and resumes when it closes.
     private var resumeAfterTracksPanel = false
@@ -183,6 +214,8 @@ class PlayerActivity : ComponentActivity() {
         val newRequest = PlaybackRequest.fromIntent(intent) ?: return
         setIntent(intent)
         request = newRequest
+        failedSubtitleUris.clear()
+        showFailedSubtitles()
         resumePositionMs = C.TIME_UNSET
         resumePlayWhenReady = true
         trackSelectionParameters = null
@@ -265,6 +298,7 @@ class PlayerActivity : ComponentActivity() {
             .build()
         trackSelectionParameters?.let { player.trackSelectionParameters = it }
         player.addListener(playerListener)
+        player.addAnalyticsListener(subtitleErrorListener)
         binding.playerView.player = player
         // Lets headset buttons and other media controllers drive playback.
         mediaSession = MediaSession.Builder(this, player)
@@ -314,6 +348,7 @@ class PlayerActivity : ComponentActivity() {
             .setConnectTimeoutMs(HTTP_TIMEOUT_MS)
             .setReadTimeoutMs(HTTP_TIMEOUT_MS)
         return DefaultMediaSourceFactory(DefaultDataSource.Factory(this, httpFactory))
+            .setSubtitleParserFactory(SubtitleParserFactory())
     }
 
     private fun setUpWindow() {
@@ -363,6 +398,11 @@ class PlayerActivity : ComponentActivity() {
                 Toast.makeText(this, R.string.error_pip_unavailable, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun showFailedSubtitles() {
+        tracksPanel.failedTrackIds = failedSubtitleUris.toSet()
+        if (tracksPanel.isShowing) tracksPanel.refresh()
     }
 
     private fun openTracksPanel() {

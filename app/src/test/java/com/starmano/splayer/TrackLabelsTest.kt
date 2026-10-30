@@ -17,10 +17,10 @@ class TrackLabelsTest {
         channels: Int = 6,
         mimeType: String = MimeTypes.AUDIO_AC3,
         roleFlags: Int = 0,
-    ) = describeTrack(language, label, isAudio = true, channels, mimeType, roleFlags, selectionFlags = 0)
+    ) = describeTrack(language, label, isAudio = true, channels, mimeType, codecs = null, roleFlags, selectionFlags = 0)
 
     private fun subtitle(language: String?, label: String? = null, roleFlags: Int = 0, selectionFlags: Int = 0) =
-        describeTrack(language, label, isAudio = false, Format.NO_VALUE, null, roleFlags, selectionFlags)
+        describeTrack(language, label, isAudio = false, Format.NO_VALUE, null, null, roleFlags, selectionFlags)
 
     @Test
     fun dubbedAudioTracksAreTitledByLanguage() {
@@ -71,6 +71,21 @@ class TrackLabelsTest {
         assertTrue(looksLikeLanguageCode("pt-BR"))
         assertFalse(looksLikeLanguageCode("English SDH"))
         assertFalse(looksLikeLanguageCode("subs.srt"))
+    }
+
+    @Test
+    fun subtitleFormatsAreNamed() {
+        assertEquals("SRT", subtitleFormatName(MimeTypes.APPLICATION_MEDIA3_CUES, MimeTypes.APPLICATION_SUBRIP))
+        assertEquals("External", subtitleFormatName(MimeTypes.APPLICATION_MEDIA3_CUES, SIDELOADED_SUBTITLE_MIME_TYPE))
+        assertEquals("PGS", subtitleFormatName(MimeTypes.APPLICATION_PGS, null))
+        assertEquals(
+            TrackDescription("English", listOf("SDH", "SRT")),
+            describeTrack(
+                "en", null, isAudio = false, Format.NO_VALUE,
+                MimeTypes.APPLICATION_MEDIA3_CUES, MimeTypes.APPLICATION_SUBRIP, C.ROLE_FLAG_CAPTION, 0,
+            ),
+        )
+        assertNull(subtitleFormatName(null, null))
     }
 
     @Test

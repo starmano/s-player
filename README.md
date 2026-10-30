@@ -18,7 +18,9 @@ expand back to full screen.
   second player.
 - **Built for Stremio streams**: HTTP(S), HLS and DASH, plus MKV/MP4/WebM files from Stremio's
   local torrent server (with generous timeouts for slow-starting torrents). Also custom HTTP
-  headers and side-loaded subtitles via the common MX Player / VLC intent extras.
+  headers and subtitle files via the common MX Player / VLC intent extras. Their format (SRT,
+  WebVTT, SSA/ASS) and text encoding are detected from the file itself, and a file that fails to
+  load is marked as such in the audio & subtitles panel.
 - **Audio & subtitles panel** (button in the top bar), Netflix style: pick the audio track and
   subtitle track (or turn subtitles off), and choose the subtitle size and style (outlined text or
   a dark box), which are remembered. Tracks are listed by language, so dubbed versions are easy

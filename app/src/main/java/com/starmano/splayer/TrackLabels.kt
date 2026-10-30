@@ -20,6 +20,7 @@ internal fun describeTrack(
     isAudio: Boolean,
     channelCount: Int,
     mimeType: String?,
+    codecs: String?,
     roleFlags: Int,
     selectionFlags: Int,
 ): TrackDescription {
@@ -41,6 +42,8 @@ internal fun describeTrack(
     if (isAudio) {
         channelLayout(channelCount)?.let(details::add)
         audioCodecName(mimeType)?.let(details::add)
+    } else {
+        subtitleFormatName(mimeType, codecs)?.let(details::add)
     }
     return TrackDescription(title, details)
 }
@@ -65,6 +68,27 @@ internal fun channelLayout(channelCount: Int): String? = when {
     channelCount > 2 -> "$channelCount channels"
     else -> null
 }
+
+/**
+ * Names for subtitle formats. Text subtitles are converted while the file is read, after which
+ * the original format is kept in the track's codecs.
+ */
+@OptIn(UnstableApi::class)
+internal fun subtitleFormatName(mimeType: String?, codecs: String?): String? =
+    when (if (mimeType == MimeTypes.APPLICATION_MEDIA3_CUES) codecs else mimeType) {
+        SIDELOADED_SUBTITLE_MIME_TYPE -> "External"
+        MimeTypes.APPLICATION_SUBRIP -> "SRT"
+        MimeTypes.TEXT_VTT -> "WebVTT"
+        MimeTypes.TEXT_SSA -> "SSA"
+        MimeTypes.APPLICATION_TTML -> "TTML"
+        MimeTypes.APPLICATION_TX3G -> "TX3G"
+        MimeTypes.APPLICATION_PGS -> "PGS"
+        MimeTypes.APPLICATION_VOBSUB -> "VobSub"
+        MimeTypes.APPLICATION_DVBSUBS -> "DVB"
+        MimeTypes.APPLICATION_CEA608, MimeTypes.APPLICATION_MP4CEA608, MimeTypes.APPLICATION_CEA708 ->
+            "Closed captions"
+        else -> null
+    }
 
 /** Familiar names for the audio formats found in movie files. */
 @OptIn(UnstableApi::class)
